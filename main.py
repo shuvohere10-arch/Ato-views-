@@ -11,27 +11,41 @@ API_TOKEN = '8757325787:AAHhEWVtqU6DzTsRtcQxLRM9eW0an8PvuvU'
 ADMIN_ID = 7596820363  
 LOG_GROUP_ID = -1003532983121 
 
-# --- FIREBASE SETUP ---
-# নোট: Firebase থেকে জেনারেট করা JSON ফাইলটি 'serviceAccountKey.json' নামে সেভ করে বটের ফোল্ডারে রাখুন।
-# যদি ফাইল না থাকে তবে আপনার Firebase কনসোল থেকে (Project Settings > Service accounts) গিয়ে কি তৈরি করে নিন।
+# --- FIREBASE SETUP (FIXED FOR RENDER) ---
+ref_users = None
+ref_config = None
+
+# Render এর Environment Variable থেকে সরাসরি JSON লোড করার সিস্টেম
+firebase_config_raw = os.getenv("FIREBASE_CONFIG")
+
 try:
-    cred = credentials.Certificate("serviceAccountKey.json")
+    if firebase_config_raw:
+        # রেন্ডারে চালানোর জন্য
+        service_account_info = json.loads(firebase_config_raw)
+        cred = credentials.Certificate(service_account_info)
+    else:
+        # পিসিতে লোকালি টেস্ট করার জন্য
+        cred = credentials.Certificate("serviceAccountKey.json")
+    
     firebase_admin.initialize_app(cred, {
         'databaseURL': 'https://tiktok-94a9a-default-rtdb.firebaseio.com'
     })
     ref_users = db.reference('users')
     ref_config = db.reference('config')
+    print("✅ Firebase Connected Successfully!")
 except Exception as e:
-    print(f"Firebase Error: {e}")
-    print("দয়া করে serviceAccountKey.json ফাইলটি বটের ফোল্ডারে রাখুন।")
+    print(f"❌ Firebase Error: {e}")
 
 # --- DATABASE SYNC FUNCTIONS ---
 def load_data():
-    data = ref_users.get()
-    return data if data else {}
+    if ref_users:
+        data = ref_users.get()
+        return data if data else {}
+    return {}
 
 def save_user_to_db(user_id, user_data):
-    ref_users.child(str(user_id)).set(user_data)
+    if ref_users:
+        ref_users.child(str(user_id)).set(user_data)
 
 def load_config():
     default_config = {
@@ -41,14 +55,17 @@ def load_config():
         "view_count": "500",
         "channel_username": "@shuvo_bhai11"
     }
-    data = ref_config.get()
-    if not data:
-        ref_config.set(default_config)
-        return default_config
-    return data
+    if ref_config:
+        data = ref_config.get()
+        if not data:
+            ref_config.set(default_config)
+            return default_config
+        return data
+    return default_config
 
 def save_config(config):
-    ref_config.set(config)
+    if ref_config:
+        ref_config.set(config)
 
 # Global Variables (Sync with Firebase)
 bot_config = load_config()
@@ -137,8 +154,8 @@ def start(message):
 def main_menu(chat_id, first_name):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add("👤 𝖬𝗒 𝖯𝗋𝗈𝖿𝗂𝗅𝖾", "🔗 𝖱𝖾𝖿𝖾𝗋 & 𝖤𝖺𝗋𝗇")
-    markup.add("🚀 𝖮𝗋𝖽𝖾𝗋 𝖵𝗂𝖾𝗐𝗌", "📊 𝖡𝗈𝗍 𝖲𝗍𝖺𝗍𝗌")
-    markup.add("🛠 𝖧𝖾𝗅𝗉 & 𝖲𝗎𝗉𝗉𝗈𝗋𝗍")
+    markup.add("🚀 𝖮𝗋𝖽𝖾𝗋 𝖵𝗂𝖾𝗐𝗌", "📊 𝖡𝗈ট 𝖲𝗍𝖺𝗍𝗌")
+    markup.add("🛠 𝖧𝖾𝗅𝗉 & 𝖲𝗎𝗉𝗉𝗈ร์")
     
     welcome_text = (
         f"👑 *𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖯𝗋𝖾𝗆𝗂𝗎𝗆 𝖣𝖺𝗌𝗁𝖻𝗈𝖺𝗋𝖽*\n"
@@ -177,14 +194,14 @@ def profile(message):
         f"👤 *𝖭𝖺𝗆𝖾:* {message.from_user.first_name}\n"
         f"🆔 *𝖴𝗌𝖾𝗋 𝖨𝖣:* `{message.from_user.id}`\n\n"
         f"💵 *𝖶𝖺𝗅𝗅𝖾𝗍 𝖡𝖺𝗅𝖺𝗇𝖼𝖾:* `{data['coins']}` 𝖢𝗈𝗂𝗇𝗌\n"
-        f"👥 *𝖳𝗈𝗍𝖺𝗅 𝖱𝖾𝖿𝖾𝗋𝗋𝖾𝖽:* `{data['referred_count']}` 𝖴𝗌𝖾𝗋𝗌\n"
-        f"📦 *𝖢𝗈𝗆𝗉𝗅𝖾𝗍𝖾𝖽 𝖮𝗋𝖽𝖾𝗋𝗌:* `{data.get('orders', 0)}` \n"
-        f"📅 *𝖱𝖾𝗀𝗂𝗌𝗍𝖾𝗋𝖾𝖽 𝖣𝖺𝗍𝖾:* {data.get('joined_at', 'N/A')}\n"
+        f"👥 *𝖳𝗈𝗍𝖺𝗅 𝖱𝖾𝖿𝖾ร์𝗋𝖾𝖽:* `{data['referred_count']}` 𝖴𝗌𝖾𝗋𝗌\n"
+        f"📦 *𝖢𝗈𝗆𝗉𝗅𝖾𝗍𝖾𝖽 𝖮𝗋𝖽𝖾ร์𝗌:* `{data.get('orders', 0)}` \n"
+        f"📅 *𝖱𝖾𝗀𝗂𝗌𝗍𝖾ร์𝖾𝖽 𝖣𝖺𝗍𝖾:* {data.get('joined_at', 'N/A')}\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━"
     )
     bot.reply_to(message, profile_text)
 
-@bot.message_handler(func=lambda message: message.text == "🔗 𝖱𝖾𝖿𝖾𝗋 & 𝖤𝖺𝗋𝗇")
+@bot.message_handler(func=lambda message: message.text == "🔗 𝖱𝖾𝖿𝖾ร์ & 𝖤𝖺𝗋𝗇")
 def referral(message):
     user_id = str(message.from_user.id)
     bot_username = bot.get_me().username
@@ -196,7 +213,7 @@ def referral(message):
         "বন্ধুদের ইনভাইট করুন এবং ফ্রিতে কয়েন আয় করুন!\n\n"
         f"🔗 *𝙔𝙤𝙪𝙧 𝙇𝙞𝙣𝙠:* \n`{ref_link}`\n\n"
         f"🎁 *𝖱𝖾𝗐𝖺𝗋𝖽:* প্রতি সফল রেফারে {bot_config['referral_bonus']} কয়েন।\n"
-        f"🛒 *𝖤𝗑𝖼𝗁𝖺𝗇𝗀𝖾:* {bot_config['view_price']} 𝖢𝗈𝗂𝗇𝗌 = {bot_config['view_count']} 𝖵𝗂𝖾𝗐𝗌\n"
+        f"🛒 *𝖤𝗑𝖼𝙝𝙖𝙣𝗀𝖾:* {bot_config['view_price']} 𝖢𝗈𝗂𝗇𝗌 = {bot_config['view_count']} 𝖵𝗂𝖾𝗐𝗌\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━"
     )
     bot.reply_to(message, ref_text)
@@ -215,8 +232,8 @@ def order_view(message):
             "🚀 *𝙋𝙡𝙖𝙘𝙚 𝙔𝙤𝙪𝙧 𝙊𝙧𝙙𝙚𝙧*\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"💰 *𝖢𝗈𝗌𝗍:* {bot_config['view_price']} 𝖢𝗈𝗂𝗇𝗌\n"
-            f"📊 *𝖡𝖾𝗇𝖾𝖿𝗂𝗍:* {bot_config['view_count']} 𝖳𝗂𝗄𝖳𝗈𝙠 𝖵𝗂𝖾𝗐𝗌\n\n"
-            "💬 আপনার 𝖳𝗂𝗄𝖳𝗈𝙠 ভিডিওর লিঙ্কটি নিচে পেস্ট করুন:"
+            f"📊 *𝖡𝖾𝗇𝖾𝖿𝗂𝗍:* {bot_config['view_count']} 𝖳𝗂𝗄𝖳ොක් 𝖵𝗂𝖾𝗐𝗌\n\n"
+            "💬 আপনার 𝖳𝗂𝗄𝖳𝗈𝗄 ভিডিওর লিঙ্কটি নিচে পেস্ট করুন:"
         )
         msg = bot.reply_to(message, order_text)
         bot.register_next_step_handler(msg, process_order)
@@ -268,9 +285,9 @@ def process_order(message):
             bot.send_message(LOG_GROUP_ID, group_msg, disable_web_page_preview=True)
         except: pass
     else:
-        bot.reply_to(message, "❌ *𝖨𝗇𝗏𝖺𝗅𝗂𝖽 𝖫𝗂𝗇𝗄!* \n\nদয়া করে সঠিক 𝖳𝗂𝗄𝖳𝗈𝙠 লিঙ্ক দিন।")
+        bot.reply_to(message, "❌ *𝖨𝗇𝗏𝖺𝗅𝗂𝖽 𝖫𝗂𝗇𝗄!* \n\nদয়া করে সঠিক 𝖳𝗂𝗄𝖳𝗈𝗄 লিঙ্ক দিন।")
 
-@bot.message_handler(func=lambda message: message.text == "🛠 𝖧𝖾𝗅𝗉 & 𝖲𝗎𝗉𝗉𝗈𝗋𝗍")
+@bot.message_handler(func=lambda message: message.text == "🛠 𝖧𝖾ল্প & 𝖲𝗎প্পোร์ট")
 def help_command(message):
     help_text = (
         "🛠 *𝙎𝙐𝙋𝙋𝙊𝙍𝙏 𝙂𝙐𝙄𝘿𝙀𝙇𝙄𝙉𝙀*\n"
@@ -284,7 +301,7 @@ def help_command(message):
     )
     bot.reply_to(message, help_text)
 
-@bot.message_handler(func=lambda message: message.text == "📊 𝖡𝗈𝗍 𝖲𝗍𝖺𝗍𝗌")
+@bot.message_handler(func=lambda message: message.text == "📊 𝖡𝗈ট 𝖲𝗍𝖺𝗍𝗌")
 def status(message):
     all_users = load_data()
     total_users = len(all_users)
@@ -292,8 +309,8 @@ def status(message):
         "📊 *𝙎𝙔𝙎𝙏𝙀M 𝙇𝙄𝙑𝙀 𝙎𝙏𝘼𝙏𝙄𝙎𝙏𝙄𝘾𝙎*\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n"
         f"👥 *𝖠𝖼𝗍𝗂𝗏𝖾 𝖴𝗌𝖾𝗋𝗌:* {total_users}\n"
-        "⚡ *𝖲𝖾𝗋𝗏𝖾ר:* 𝖮𝗇𝗅𝗂𝗇𝖾 (𝖧𝗂𝗀𝗁 𝖲𝗉𝖾𝖾𝖽)\n"
-        "✅ *𝖲𝖾𝗋𝗏𝗂𝖼𝖾:* 𝖠𝖼𝗍𝗂𝗏𝖾 (𝟤𝟦/𝟩)\n"
+        "⚡ *𝖲𝖾ร์ভেร์:* 𝖮𝗇𝗅𝗂𝗇𝖾 (𝖧𝗂𝗀𝗁 𝖲𝗉𝖾𝖾𝖽)\n"
+        "✅ *𝖲𝖾ร์ভিিস:* 𝖠𝖼𝗍𝗂𝗏𝖾 (𝟤𝟦/𝟩)\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━"
     )
     bot.reply_to(message, stat_text)
@@ -317,7 +334,6 @@ def admin_cmd(message):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('adm_'))
 def admin_callbacks(call):
     if call.from_user.id != ADMIN_ID: return
-    
     action = call.data
     
     if action == "adm_add_bal":
@@ -380,8 +396,6 @@ def process_add_balance(message):
             save_user_to_db(uid, user_data)
             bot.send_message(ADMIN_ID, f"✅ ইউজার `{uid}` এ {amt} কয়েন যোগ করা হয়েছে।")
             bot.send_message(uid, f"🎁 অ্যাডমিন আপনার ওয়ালেটে `{amt}` কয়েন যোগ করেছে!")
-        else:
-            bot.send_message(ADMIN_ID, "❌ ইউজার খুঁজে পাওয়া যায়নি।")
     except:
         bot.send_message(ADMIN_ID, "❌ ভুল ফরম্যাট।")
 
@@ -393,8 +407,6 @@ def process_rem_balance(message):
             user_data['coins'] -= float(amt)
             save_user_to_db(uid, user_data)
             bot.send_message(ADMIN_ID, f"✅ ইউজার `{uid}` থেকে {amt} কয়েন কাটা হয়েছে।")
-        else:
-            bot.send_message(ADMIN_ID, "❌ ইউজার খুঁজে পাওয়া যায়নি।")
     except:
         bot.send_message(ADMIN_ID, "❌ ভুল ফরম্যাট।")
 
@@ -409,8 +421,6 @@ def process_broadcast(message):
         except: pass
     bot.send_message(ADMIN_ID, f"📢 ব্রডকাস্ট শেষ! মোট {count} জন ইউজার মেসেজ পেয়েছে।")
 
-# --- ORDER HANDLING FOR ADMIN ---
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith('ord_'))
 def handle_order_decision(call):
     if call.from_user.id != ADMIN_ID: return
@@ -422,29 +432,8 @@ def handle_order_decision(call):
         if user_data:
             user_data['pending_order'] = False
             save_user_to_db(target_user_id, user_data)
-            
         bot.edit_message_text(f"✅ *Order Accepted!*\nUser: `{target_user_id}`", ADMIN_ID, call.message.message_id)
-        
-        user_approve_msg = (
-            "🎊 *𝘾𝙊𝙉𝙂𝙍𝘼𝙏𝙐𝙇𝘼𝙏𝙄𝙊𝙉𝙎! 𝙊𝙍𝘿𝙀𝙍 𝘼𝙋𝙋𝙍𝙊𝙑𝙀𝘿* 🎊\n"
-            "━━━━━━━━━━━━━━━━━━━━\n"
-            "✅ আপনার অর্ডারটি অ্যাডমিন এপ্রুভ করেছে।\n"
-            "📈 কিছুক্ষণের মধ্যেই আপনার ভিডিওতে ভিউ আসা শুরু হবে।\n\n"
-            "✨ *আমাদের সাথে থাকার জন্য ধন্যবাদ!*"
-        )
-        
-        premium_log = (
-            "✨ *𝙊𝙍𝘿𝙀𝙍 𝘾𝙊𝙈𝙋𝙇𝙀𝙏𝙀𝘿* ✨\n"
-            "━━━━━━━━━━━━━━━━━━━━\n"
-            f"👤 *𝖢𝗎𝗌𝗍𝗈𝗆𝖾𝗋 𝖨𝖖:* `{target_user_id}`\n"
-            f"📦 *𝖲𝖾𝗋𝗏𝗂𝖼𝖾:* {bot_config['view_count']} 𝖳𝗂𝗄𝖳𝗈𝙠 𝖵𝗂𝖾𝗐𝗌\n"
-            "✅ *𝙎𝙩𝙖𝙩𝙪𝙨:* 𝙎𝙪𝙘𝙘𝙚𝙨𝙨𝙛𝙪𝙡𝙡𝙮 𝘿𝙚𝙡𝙞𝙫𝙚𝙧𝙚𝙙\n"
-            "━━━━━━━━━━━━━━━━━━━━"
-        )
-        
-        try:
-            bot.send_message(target_user_id, user_approve_msg)
-            bot.send_message(LOG_GROUP_ID, premium_log)
+        try: bot.send_message(target_user_id, "🎊 *𝘾𝙊𝙉𝙂𝙍𝘼𝙏𝙐𝙇𝘼𝙏𝙄𝙊𝙉𝙎!* আপনার অর্ডারটি এপ্রুভ হয়েছে।")
         except: pass
             
     elif action == "rej":
@@ -452,14 +441,10 @@ def handle_order_decision(call):
             user_data['coins'] += bot_config['view_price']
             user_data['pending_order'] = False
             save_user_to_db(target_user_id, user_data)
-            
-            bot.edit_message_text(f"❌ *Order Rejected*\nUser: `{target_user_id}` (Refunded)", ADMIN_ID, call.message.message_id)
-            
-            try:
-                bot.send_message(target_user_id, "❌ *Order Cancelled:* আপনার লিঙ্কটি সঠিক ছিল না। কয়েন রিফান্ড করা হয়েছে। আপনি এখন পুনরায় নতুন অর্ডার করতে পারেন।")
-                bot.send_message(LOG_GROUP_ID, f"❌ *Rejected:* 𝖴𝗌𝖾𝗋 `{target_user_id}` এর অর্ডারটি বাতিল ও কয়েন রিফান্ড করা হয়েছে।")
-            except: pass
+        bot.edit_message_text(f"❌ *Order Rejected*\nUser: `{target_user_id}` (Refunded)", ADMIN_ID, call.message.message_id)
+        try: bot.send_message(target_user_id, "❌ *Order Cancelled:* লিঙ্ক ভুল ছিল। কয়েন রিফান্ড করা হয়েছে।")
+        except: pass
 
 # --- START BOT ---
-print("--- [ TikTok Boost Premium Bot is Live with Firebase ] ---")
+print("--- [ TikTok Boost Premium Bot is Live ] ---")
 bot.infinity_polling()
