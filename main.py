@@ -227,8 +227,8 @@ def order_view(message):
             "🚀 *𝙋𝙡𝙖𝙘𝙚 𝙔𝙤𝙪𝙧 𝙊𝙧𝙙𝙚𝙧*\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"💰 *𝖢𝗈𝗌𝗍:* {bot_config['view_price']} 𝖢𝗈𝗂𝗇𝗌\n"
-            f"📊 *𝖡𝖾𝗇𝖾𝖿𝗂𝗍:* {bot_config['view_count']} 𝖳𝗂𝗄𝖳ොക് 𝖵𝗂𝖾𝗐𝗌\n\n"
-            "💬 আপনার 𝖳𝗂𝗄𝖳ොക് ভিডিওর লিঙ্কটি নিচে পেস্ট করুন:"
+            f"📊 *𝖡𝖾𝗇𝖾𝖿𝗂𝗍:* {bot_config['view_count']} 𝖳𝗂𝗄 Tok 𝖵𝗂𝖾𝗐𝗌\n\n"
+            "💬 আপনার 𝖳𝗂𝗄tok ভিডিওর লিঙ্কটি নিচে পেস্ট করুন:"
         )
         msg = bot.reply_to(message, order_text)
         bot.register_next_step_handler(msg, process_order)
@@ -261,8 +261,8 @@ def process_order(message):
         markup.add(btn_accept, btn_reject)
 
         admin_msg = (
-            "🔥 *𝙉𝙀W 𝙊𝙍𝘿𝙀𝙍 𝙍𝙀𝘾𝙀𝙄𝙑𝙀𝘿*\n\n"
-            f"👤 *𝖴𝗌𝖾ר:* {message.from_user.first_name}\n"
+            "🔥 *𝙉𝙀𝙒 𝙊𝙍𝘿𝙀𝙍 𝙍𝙀𝘾𝙀𝙄𝙑𝙀𝘿*\n\n"
+            f"👤 *𝖴𝗌𝖾r:* {message.from_user.first_name}\n"
             f"🆔 *𝖨𝖣:* `{user_id}`\n"
             f"🔗 *𝙇𝙞𝙣𝙠:* {video_link}\n"
             f"📦 *𝙎𝙚𝙧𝙫𝙞𝙘𝙚:* {bot_config['view_count']} 𝖵𝗂𝖾𝗐𝗌\n"
@@ -270,9 +270,9 @@ def process_order(message):
         bot.send_message(ADMIN_ID, admin_msg, reply_markup=markup)
 
         group_msg = (
-            "🚀 *𝙉𝙀W 𝙊𝙍𝘿𝙀𝙍 𝙋𝙇𝘼𝘾𝙀𝘿*\n"
+            "🚀 *𝙉𝙀𝙒 𝙊𝙍𝘿𝙀𝙍 𝙋𝙇𝘼𝘾𝙀𝘿*\n"
             "━━━━━━━━━━━━━━━━━━\n"
-            f"👤 *𝖢𝗎𝗌𝗍𝗈𝗆𝖾ร์:* {message.from_user.first_name}\n"
+            f"👤 *𝖢𝗎𝗌𝗍𝗈𝗆𝖾r์:* {message.from_user.first_name}\n"
             f"📦 *𝖰𝗎𝖺𝗇𝗍𝗂𝗍𝗒:* {bot_config['view_count']} 𝖵𝗂𝖾𝗐𝗌\n"
             f"⏳ *𝖲𝗍𝖺𝗍𝗎𝗌:* 𝖯𝖾𝗇𝖽𝗂𝗇𝗀 𝖱𝖾𝗏𝗂𝖾𝗐"
         )
@@ -280,9 +280,9 @@ def process_order(message):
             bot.send_message(LOG_GROUP_ID, group_msg, disable_web_page_preview=True)
         except: pass
     else:
-        bot.reply_to(message, "❌ *𝖨𝗇𝗏𝖺𝗅𝗂𝖽 𝖫𝗂𝗇𝙠!* \n\nদয়া করে সঠিক 𝖳𝗂𝗄𝖳ොക് লিঙ্ক দিন।")
+        bot.reply_to(message, "❌ *𝖨𝗇𝗏𝖺𝗅𝗂𝖽 𝖫𝗂𝗇k!* \n\nদয়া করে সঠিক 𝖳𝗂𝗄 Tok লিঙ্ক দিন।")
 
-@bot.message_handler(func=lambda message: message.text == "🛠 𝖧𝖾𝗅𝗉 & 𝖲𝗎𝗉𝗉ੋਰ্ট")
+@bot.message_handler(func=lambda message: message.text == "🛠 𝖧𝖾𝗅𝗉 & 𝖲𝗎𝗉𝗉𝗈𝗋𝗍")
 def help_command(message):
     help_text = (
         "🛠 *𝙎𝙐𝙋𝙋𝙊𝙍𝙏 𝙂𝙐𝙄𝘿𝙀𝙇𝙄𝙉𝙀*\n"
@@ -301,10 +301,10 @@ def status(message):
     all_users = load_data()
     total_users = len(all_users)
     stat_text = (
-        "📊 *𝙎𝙔𝙎𝙏𝙀M 𝙇𝙄𝙑𝙀 𝙎𝙏𝘼𝙏𝙄𝙎𝙏𝙄𝘾𝙎*\n"
+        "📊 *𝙎𝙔𝙎𝙏𝙀𝙈 𝙇𝙄𝙑𝙀 𝙎𝙏𝘼𝙏𝙄𝙎𝙏𝙄𝘾𝙎*\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n"
         f"👥 *𝖠𝖼𝗍𝗂𝗏𝖾 𝖴𝗌𝖾𝗋𝗌:* {total_users}\n"
-        "⚡ *𝖲𝖾𝗋𝗏𝖾ר:* 𝖮𝗇𝗅𝗂𝗇𝖾 (𝖧𝗂𝗀𝗁 𝖲𝗉𝖾𝖾𝖽)\n"
+        "⚡ *𝖲𝖾𝗋𝗏𝖾r:* 𝖮𝗇𝗅𝗂𝗇𝖾 (𝖧𝗂𝗀𝗁 𝖲𝗉𝖾𝖾𝖽)\n"
         "✅ *𝖲𝖾𝗋𝗏𝗂𝖼𝖾:* 𝖠𝖼𝗍𝗂𝗏𝖾 (𝟤𝟦/𝟩)\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━"
     )
@@ -448,8 +448,8 @@ def handle_order_decision(call):
         premium_log = (
             "✨ *𝙊𝙍𝘿𝙀𝙍 𝘾𝙊𝙈𝙋𝙇𝙀𝙏𝙀𝘿* ✨\n"
             "━━━━━━━━━━━━━━━━━━━━\n"
-            f"👤 *𝖢𝗎𝗌𝗍𝗈𝗆𝖾𝗋 𝖨𝖖:* `{target_user_id}`\n"
-            f"📦 *𝖲𝖾𝗋𝗏𝗂𝖼𝖾:* {bot_config['view_count']} 𝖳𝗂𝗄𝖳ොක් 𝖵𝗂𝖾𝗐𝗌\n"
+            f"👤 *𝖢𝗎𝗌𝗍𝗈𝗆𝖾𝗋:* `{target_user_id}`\n"
+            f"📦 *𝖲𝖾𝗋𝗏𝗂𝖼𝖾:* {bot_config['view_count']} 𝖳𝗂𝗄Tok 𝖵𝗂𝖾𝗐𝗌\n"
             "✅ *𝙎𝙩𝙖𝙩𝙪𝙨:* 𝙎𝙪𝙘𝙘𝙚𝙨𝙨𝙛𝙪𝙡𝙡𝙮 𝘿𝙚𝙡𝙞𝙫𝙚𝙧𝙚𝙙\n"
             "━━━━━━━━━━━━━━━━━━━━"
         )
