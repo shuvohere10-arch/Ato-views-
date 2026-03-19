@@ -7,9 +7,9 @@ import firebase_admin
 from firebase_admin import credentials, db
 
 # --- CONFIGURATION (DON'T CHANGE IDs) ---
-API_TOKEN = '8539060773:AAFCA5nLizmozrQ_RpgpngP7wkJyqRivCEg'
+API_TOKEN = '8757325787:AAEg-KJWtB-qSSBHlmqPzIB_o_3YEmDm0W4'
 ADMIN_ID = 7596820363  
-LOG_GROUP_ID = -1003760590420  
+LOG_GROUP_ID = -1003876835738  
 
 # --- FIREBASE SETUP ---
 # নোট: Firebase থেকে জেনারেট করা JSON ফাইলটি 'serviceAccountKey.json' নামে সেভ করে বটের ফোল্ডারে রাখুন।
@@ -83,14 +83,23 @@ def get_user_data(user_id):
 
 def is_user_joined(user_id):
     try:
-        member = bot.get_chat_member(bot_config['channel_username'], user_id)
-        if member.status in ['member', 'administrator', 'creator']:
+        # এখানে আপনার ২ টি চ্যানেলের আইডি
+        ch1 = "@TikTokAutoViews15"
+        ch2 = "@shuvo_bhai11"
+        
+        member1 = bot.get_chat_member(ch1, user_id)
+        member2 = bot.get_chat_member(ch2, user_id)
+        
+        status_list = ['member', 'administrator', 'creator']
+        
+        # দুই চ্যানেলে জয়েন থাকলে True পাঠাবে
+        if member1.status in status_list and member2.status in status_list:
             return True
         else:
             return False
     except Exception:
         return False
-
+    
 # --- USER COMMANDS ---
 
 @bot.message_handler(commands=['start'])
@@ -98,12 +107,14 @@ def start(message):
     user_id = message.from_user.id
     first_name = message.from_user.first_name
     
-    if not is_user_joined(user_id):
+if not is_user_joined(user_id):
         markup = types.InlineKeyboardMarkup()
-        btn = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝙊𝙛𝙛𝙞𝙘𝙞𝙖𝙡 𝘾𝙝𝙖𝙣𝙣𝙚𝙡", url=f"https://t.me/{bot_config['channel_username'].replace('@','')}")
+        btn1 = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝘾𝙝𝙖𝙣𝙣𝙚𝙡 1", url="https://t.me/Trader_Shuvo99")
+        btn2 = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝘾𝙝𝙖𝙣𝙣𝙚𝙡 2", url="https://t.me/shuvo_bhai11")
         check_btn = types.InlineKeyboardButton("🔄 𝙑𝙚𝙧𝙞𝙛𝙮 𝙈𝙚𝙢𝙗𝙚𝙧𝙨𝙝𝙞𝙥", callback_data="check_join")
-        markup.add(btn)
-        markup.add(check_btn)
+        
+        markup.add(btn1, btn2) # দুই বাটন এক লাইনে
+        markup.add(check_btn) # ভেরিফাই বাটন নিচের লাইনে
         
         welcome_join_text = (
             f"👋 *আসসালামু আলাইকুম, {first_name}!*\n\n"
@@ -171,11 +182,13 @@ def check_join_callback(call):
 @bot.message_handler(func=lambda message: not is_user_joined(message.from_user.id))
 def force_join_protection(message):
     markup = types.InlineKeyboardMarkup()
-    btn = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝙊𝙛𝙛𝙞𝙘𝙞𝙖𝙡 𝘾𝙝𝙖𝙣𝙣𝙚𝙡", url=f"https://t.me/{bot_config['channel_username'].replace('@','')}")
+    btn1 = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝘾𝙝𝙖𝙣𝙣𝙚𝙡 1", url="https://t.me/Trader_Shuvo99")
+    btn2 = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝘾𝙝𝙖𝙣𝙣𝙚𝙡 2", url="https://t.me/shuvo_bhai11")
     check_btn = types.InlineKeyboardButton("🔄 𝙑𝙚𝙧𝙞𝙛𝙮 𝙈𝙚𝙢𝙗𝙚𝙧𝙨𝙝𝙞𝙥", callback_data="check_join")
-    markup.add(btn)
+    
+    markup.add(btn1, btn2)
     markup.add(check_btn)
-    bot.send_message(message.chat.id, "🚫 *অ্যাক্সেস ব্লক করা হয়েছে!*\n\nবটটি ব্যবহার করতে চাইলে আমাদের অফিসিয়াল চ্যানেলে জয়েন থাকতে হবে।", reply_markup=markup)
+    bot.send_message(message.chat.id, "🚫 *অ্যাক্সেস ব্লক করা হয়েছে!*\n\nবটটি ব্যবহার করতে চাইলে আমাদের দুটি চ্যানেলেই জয়েন থাকতে হবে।", reply_markup=markup)
 
 @bot.message_handler(func=lambda message: message.text == "👤 𝖬𝗒 𝖯𝗋𝗈𝖿𝗂𝗅𝖾")
 def profile(message):
