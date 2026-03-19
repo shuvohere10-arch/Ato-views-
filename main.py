@@ -12,18 +12,13 @@ ADMIN_ID = 7596820363
 LOG_GROUP_ID = -1003876835738  
 
 # --- FIREBASE SETUP ---
-# নোট: Firebase থেকে জেনারেট করা JSON ফাইলটি 'serviceAccountKey.json' নামে সেভ করে বটের ফোল্ডারে রাখুন।
-# যদি ফাইল না থাকে তবে আপনার Firebase কনসোল থেকে (Project Settings > Service accounts) গিয়ে কি তৈরি করে নিন।
 try:
-    # Render-এর Environment Variable থেকে ডাটা নিবে
     service_account_env = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
     
     if service_account_env:
-        # স্ট্রিং হিসেবে থাকা ডাটাকে JSON ফরম্যাটে রূপান্তর করবে
         service_account_info = json.loads(service_account_env)
         cred = credentials.Certificate(service_account_info)
     else:
-        # যদি এনভায়রনমেন্ট ভেরিয়েবল না থাকে তবে ফাইল খুঁজবে (লোকাল হোস্টিং এর জন্য)
         cred = credentials.Certificate("serviceAccountKey.json")
 
     firebase_admin.initialize_app(cred, {
@@ -59,9 +54,7 @@ def load_config():
 def save_config(config):
     ref_config.set(config)
 
-# Global Variables (Sync with Firebase)
 bot_config = load_config()
-
 bot = telebot.TeleBot(API_TOKEN, parse_mode="Markdown")
 
 # --- HELPER FUNCTIONS ---
@@ -92,7 +85,6 @@ def is_user_joined(user_id):
         
         status_list = ['member', 'administrator', 'creator']
         
-        # দুই চ্যানেলে জয়েন থাকলে True পাঠাবে
         if member1.status in status_list and member2.status in status_list:
             return True
         else:
@@ -107,19 +99,19 @@ def start(message):
     user_id = message.from_user.id
     first_name = message.from_user.first_name
     
-if not is_user_joined(user_id):
+    if not is_user_joined(user_id):
         markup = types.InlineKeyboardMarkup()
-        btn1 = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝘾𝙝𝙖𝙣𝙣𝙚𝙡 1", url="https://t.me/Trader_Shuvo99")
+        btn1 = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝘾𝙝𝙖𝙣𝙣𝙚𝙡 1", url="https://t.me/TikTokAutoViews15")
         btn2 = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝘾𝙝𝙖𝙣𝙣𝙚𝙡 2", url="https://t.me/shuvo_bhai11")
         check_btn = types.InlineKeyboardButton("🔄 𝙑𝙚𝙧𝙞𝙛𝙮 𝙈𝙚𝙢𝙗𝙚𝙧𝙨𝙝𝙞𝙥", callback_data="check_join")
         
-        markup.add(btn1, btn2) # দুই বাটন এক লাইনে
-        markup.add(check_btn) # ভেরিফাই বাটন নিচের লাইনে
+        markup.add(btn1, btn2)
+        markup.add(check_btn)
         
         welcome_join_text = (
             f"👋 *আসসালামু আলাইকুম, {first_name}!*\n\n"
             "✨ *TikTok Boost Premium* এ আপনাকে স্বাগতম।\n"
-            "আমাদের হাই-কোয়ালিটি সার্ভিসগুলো ব্যবহার করতে আপনাকে অবশ্যই নিচের চ্যানেলে জয়েন থাকতে হবে।\n\n"
+            "আমাদের সার্ভিসগুলো ব্যবহার করতে আপনাকে অবশ্যই নিচের দুটি চ্যানেলে জয়েন থাকতে হবে।\n\n"
             "⚠️ *বিঃদ্রঃ জয়েন না থাকলে অর্ডার সাবমিট হবে না!*"
         )
         bot.send_message(message.chat.id, welcome_join_text, reply_markup=markup)
@@ -137,13 +129,11 @@ if not is_user_joined(user_id):
         if len(args) > 1:
             referrer_id = args[1]
             if referrer_id != user_id_str and referrer_id in all_users:
-                # Update referrer
                 ref_data = all_users[referrer_id]
                 ref_data['coins'] += bot_config['referral_bonus']
                 ref_data['referred_count'] += 1
                 save_user_to_db(referrer_id, ref_data)
                 
-                # Update current user
                 user_data['referred_by'] = referrer_id
                 save_user_to_db(user_id_str, user_data)
                 
@@ -237,8 +227,8 @@ def order_view(message):
             "🚀 *𝙋𝙡𝙖𝙘𝙚 𝙔𝙤𝙪𝙧 𝙊𝙧𝙙𝙚𝙧*\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"💰 *𝖢𝗈𝗌𝗍:* {bot_config['view_price']} 𝖢𝗈𝗂𝗇𝗌\n"
-            f"📊 *𝖡𝖾𝗇𝖾𝖿𝗂𝗍:* {bot_config['view_count']} 𝖳𝗂𝗄𝖳𝗈𝙠 𝖵𝗂𝖾𝗐𝗌\n\n"
-            "💬 আপনার 𝖳𝗂𝗄𝖳𝗈𝙠 ভিডিওর লিঙ্কটি নিচে পেস্ট করুন:"
+            f"📊 *𝖡𝖾𝗇𝖾𝖿𝗂𝗍:* {bot_config['view_count']} 𝖳𝗂𝗄𝖳ොക് 𝖵𝗂𝖾𝗐𝗌\n\n"
+            "💬 আপনার 𝖳𝗂𝗄𝖳ොക് ভিডিওর লিঙ্কটি নিচে পেস্ট করুন:"
         )
         msg = bot.reply_to(message, order_text)
         bot.register_next_step_handler(msg, process_order)
@@ -290,9 +280,9 @@ def process_order(message):
             bot.send_message(LOG_GROUP_ID, group_msg, disable_web_page_preview=True)
         except: pass
     else:
-        bot.reply_to(message, "❌ *𝖨𝗇𝗏𝖺𝗅𝗂𝖽 𝖫𝗂𝗇𝗄!* \n\nদয়া করে সঠিক 𝖳𝗂𝗄𝖳𝗈𝙠 লিঙ্ক দিন।")
+        bot.reply_to(message, "❌ *𝖨𝗇𝗏𝖺𝗅𝗂𝖽 𝖫𝗂𝗇𝙠!* \n\nদয়া করে সঠিক 𝖳𝗂𝗄𝖳ොക് লিঙ্ক দিন।")
 
-@bot.message_handler(func=lambda message: message.text == "🛠 𝖧𝖾𝗅𝗉 & 𝖲𝗎𝗉𝗉𝗈𝗋𝗍")
+@bot.message_handler(func=lambda message: message.text == "🛠 𝖧𝖾𝗅𝗉 & 𝖲𝗎𝗉𝗉ੋਰ্ট")
 def help_command(message):
     help_text = (
         "🛠 *𝙎𝙐𝙋𝙋𝙊𝙍𝙏 𝙂𝙐𝙄𝘿𝙀𝙇𝙄𝙉𝙀*\n"
@@ -459,7 +449,7 @@ def handle_order_decision(call):
             "✨ *𝙊𝙍𝘿𝙀𝙍 𝘾𝙊𝙈𝙋𝙇𝙀𝙏𝙀𝘿* ✨\n"
             "━━━━━━━━━━━━━━━━━━━━\n"
             f"👤 *𝖢𝗎𝗌𝗍𝗈𝗆𝖾𝗋 𝖨𝖖:* `{target_user_id}`\n"
-            f"📦 *𝖲𝖾𝗋𝗏𝗂𝖼𝖾:* {bot_config['view_count']} 𝖳𝗂𝗄𝖳𝗈𝙠 𝖵𝗂𝖾𝗐𝗌\n"
+            f"📦 *𝖲𝖾𝗋𝗏𝗂𝖼𝖾:* {bot_config['view_count']} 𝖳𝗂𝗄𝖳ොක් 𝖵𝗂𝖾𝗐𝗌\n"
             "✅ *𝙎𝙩𝙖𝙩𝙪𝙨:* 𝙎𝙪𝙘𝙘𝙚𝙨𝙨𝙛𝙪𝙡𝙡𝙮 𝘿𝙚𝙡𝙞𝙫𝙚𝙧𝙚𝙙\n"
             "━━━━━━━━━━━━━━━━━━━━"
         )
