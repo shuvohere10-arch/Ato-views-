@@ -26,7 +26,7 @@ import firebase_admin
 from firebase_admin import credentials, db
 
 # --- CONFIGURATION (DON'T CHANGE IDs) ---
-API_TOKEN = '8757325787:AAEg-KJWtB-qSSBHlmqPzIB_o_3YEmDm0W4'
+API_TOKEN = '8539060773:AAFRmIXNIHtUxtqyD9JLjIyToZjm7oqgF8g'
 ADMIN_ID = 7596820363  
 LOG_GROUP_ID = -1003876835738  
 
@@ -116,8 +116,45 @@ def is_user_joined(user_id):
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = message.from_user.id
+    user_id_str = str(user_id)
     first_name = message.from_user.first_name
     
+    all_users = load_data()
+    
+    # --- REFERRAL SYSTEM FIX START ---
+    if user_id_str not in all_users:
+        # এটি নতুন ইউজার হলে ডাটা তৈরি করুন
+        new_user = {
+            'coins': bot_config['welcome_bonus'],
+            'referred_by': None,
+            'referred_count': 0,
+            'orders': 0,
+            'pending_order': False,
+            'joined_at': datetime.now().strftime("%d %b, %Y")
+        }
+        
+        args = message.text.split()
+        if len(args) > 1:
+            referrer_id = args[1]
+            # রেফারার যদি নিজে না হয় এবং রেফারার যদি ডাটাবেজে থাকে
+            if referrer_id != user_id_str and referrer_id in all_users:
+                ref_data = all_users[referrer_id]
+                ref_data['coins'] = ref_data.get('coins', 0) + bot_config['referral_bonus']
+                ref_data['referred_count'] = ref_data.get('referred_count', 0) + 1
+                save_user_to_db(referrer_id, ref_data)
+                
+                new_user['referred_by'] = referrer_id
+                
+                try:
+                    bot.send_message(referrer_id, f"🥳 *𝙉𝙚𝙬 𝙍𝙚𝙛𝙚𝙧𝙧𝙖𝙡 𝙎𝙪𝙘𝙘𝙚𝙨𝙨!* \n\nআপনার লিঙ্কে ক্লিক করে {first_name} জয়েন করেছে। আপনি পেয়েছেন +{bot_config['referral_bonus']} 𝖢𝗈𝗂𝗇!")
+                except:
+                    pass
+        
+        save_user_to_db(user_id_str, new_user)
+        bot.send_message(message.chat.id, f"🎊 *𝖢𝗈𝗇𝗀𝗋𝖺𝗍𝗎𝗅𝖺𝗍𝗂𝗈𝗇𝗌!*\n\nআপনি স্বাগতম বোনাস হিসেবে `{bot_config['welcome_bonus']}` 𝖢𝗈𝗂𝗇 পেয়েছেন।")
+    # --- REFERRAL SYSTEM FIX END ---
+
+    # জয়েন চেক
     if not is_user_joined(user_id):
         markup = types.InlineKeyboardMarkup()
         btn1 = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝘾𝙝𝙖𝙣𝙣𝙚𝙡 1", url="https://t.me/TikTokAutoViews15")
@@ -135,31 +172,6 @@ def start(message):
         )
         bot.send_message(message.chat.id, welcome_join_text, reply_markup=markup)
         return
-
-    user_id_str = str(user_id)
-    all_users = load_data()
-    is_new = user_id_str not in all_users
-    args = message.text.split()
-    
-    user_data = get_user_data(user_id_str)
-    
-    if is_new:
-        bot.send_message(message.chat.id, f"🎊 *𝖢𝗈𝗇𝗀𝗋𝖺𝗍𝗎𝗅𝖺𝗍𝗂𝗈𝗇𝗌!*\n\nআপনি স্বাগতম বোনাস হিসেবে `{bot_config['welcome_bonus']}` 𝖢𝗈𝗂𝗇 পেয়েছেন।")
-        if len(args) > 1:
-            referrer_id = args[1]
-            if referrer_id != user_id_str and referrer_id in all_users:
-                ref_data = all_users[referrer_id]
-                ref_data['coins'] += bot_config['referral_bonus']
-                ref_data['referred_count'] += 1
-                save_user_to_db(referrer_id, ref_data)
-                
-                user_data['referred_by'] = referrer_id
-                save_user_to_db(user_id_str, user_data)
-                
-                try:
-                    bot.send_message(referrer_id, f"🥳 *𝙉𝙚𝙬 𝙍𝙚𝙛𝙚𝙧𝙧𝙖𝙡 𝙎𝙪𝙘𝙘𝙚𝙨𝙨!* \n\nআপনার লিঙ্কে ক্লিক করে {first_name} জয়েন করেছে। আপনি পেয়েছেন +{bot_config['referral_bonus']} 𝖢𝗈𝗂𝗇!")
-                except:
-                    pass
 
     main_menu(message.chat.id, first_name)
 
@@ -184,14 +196,15 @@ def check_join_callback(call):
     if is_user_joined(call.from_user.id):
         bot.answer_callback_query(call.id, "✅ ভেরিফিকেশন সফল হয়েছে!", show_alert=False)
         bot.delete_message(call.message.chat.id, call.message.message_id)
-        start(call.message)
+        # এখানে সরাসরি মেইন মেনু কল করা হচ্ছে কারণ ইউজার ডাটা আগেই তৈরি হয়ে গেছে
+        main_menu(call.message.chat.id, call.from_user.first_name)
     else:
         bot.answer_callback_query(call.id, "⚠️ আপনি এখনো জয়েন করেননি!", show_alert=True)
 
 @bot.message_handler(func=lambda message: not is_user_joined(message.from_user.id))
 def force_join_protection(message):
     markup = types.InlineKeyboardMarkup()
-    btn1 = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝘾𝙝𝙖𝙣𝙣𝙚𝙡 1", url="https://t.me/Trader_Shuvo99")
+    btn1 = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝘾𝙝𝙖𝙣𝙣𝙚𝙡 1", url="https://t.me/TikTokAutoViews15")
     btn2 = types.InlineKeyboardButton("📢 𝙅𝙤𝙞𝙣 𝘾𝙝𝙖𝙣𝙣𝙚𝙡 2", url="https://t.me/shuvo_bhai11")
     check_btn = types.InlineKeyboardButton("🔄 𝙑𝙚𝙧𝙞𝙛𝙮 𝙈𝙚𝙢𝙗𝙚𝙧𝙨𝙝𝙞𝙥", callback_data="check_join")
     
@@ -270,7 +283,7 @@ def process_order(message):
             "━━━━━━━━━━━━━━━━━━━━\n"
             "✅ আপনার ভিউ অর্ডারটি সফলভাবে জমা হয়েছে।\n"
             "⏳ আমাদের অ্যাডমিন আপনার লিঙ্কটি যাচাই করছে।\n\n"
-            "🚀 *খুব শীঘ্রই আপনার কাজ শুরু হবে, ধৈর্য ধরুন!*"
+            "🚀 *খুব শীঘ্রই আপনার কাজ শুরু হবে, ধৈর্য ধরুর!*"
         )
         bot.reply_to(message, success_msg)
         
